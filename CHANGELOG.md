@@ -1,3 +1,13 @@
+## [1.1.0] - 2026-07-25
+### Changed -- prominent Arthur Exit Value + desk total (Job 2)
+- Three-way comparison table: the **Arthur Exit Value** column (Hybrid minus Benchmark,
+  both sharing the Lancelot entry) is now prominent -- bold, enlarged, tinted header
+  and cell, green when positive / red when negative (existing `.green`/`.red` classes).
+- Added a **DESK TOTAL** row at the foot of the table: total Hybrid P&L, total Benchmark
+  P&L, and total Arthur Exit Value (Hybrid total minus Benchmark total), same green/red.
+- Archie Brief: added a concise `ARTHUR EXIT VALUE` section (per-system + total,
+  Hybrid minus Benchmark).
+
 ## [1.0.22] - 2026-07-19
 ### Changed -- atomic macro flag write (supports live polling)
 - `write_macro()` now writes `logs/macro_sentiment.json` atomically (temp file + os.replace,

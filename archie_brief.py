@@ -179,6 +179,14 @@ def build_roundtable_brief(agg, now_utc=None):
     a("OPEN POSITIONS")
     a("\n".join(opens) if opens else "No open positions")
     a("")
+    a("ARTHUR EXIT VALUE (Hybrid minus Benchmark; both share the Lancelot entry)")
+    for s in agg.get("systems", []):
+        ev = s.get("exit_value")
+        if ev is None:
+            continue
+        a("  %-13s GBP %s" % (s.get("name", "?"), _num(ev, 2)))
+    a("  %-13s GBP %s" % ("TOTAL", _num(agg.get("delta_bench", 0), 2)))
+    a("")
     a("THREE-WAY COMPARISON (cumulative P&L per matched system)")
     a("  Hybrid minus Benchmark = Arthur's pure exit value (both share the Lancelot entry)")
     for s in agg.get("systems", []):

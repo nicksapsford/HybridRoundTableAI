@@ -1083,7 +1083,11 @@ _PAGE = """<!DOCTYPE html>
   .twtable th:first-child{ text-align:left; }
   .twtable td{ padding:5px 10px; border-bottom:1px solid #222; text-align:right; color:#ccc; }
   .twtable td:first-child{ text-align:left; }
-  .twtable .exitval{ font-weight:800; }
+  .twtable .exitval{ font-weight:800; font-size:13px; }
+  .twtable th.evcol{ color:#8ab4e0; font-weight:800; }
+  .twtable td.evcol{ background:rgba(138,180,224,0.05); }
+  .twtable tr.tw-total td{ border-top:2px solid #444; border-bottom:none;
+        font-weight:800; color:#e8e8e8; padding-top:8px; letter-spacing:0.3px; }
   .twtable .mut{ color:#666; font-size:10px; }
   .twtable .dim{ color:#666; }
 
@@ -1143,7 +1147,7 @@ _PAGE = """<!DOCTYPE html>
 <div class="twpanel">
   <div class="twpanel-title">&#9878; THREE-WAY COMPARISON &mdash; cumulative P&amp;L per matched system. HYBRID &minus; BENCHMARK = Arthur's pure exit value (both share the Lancelot entry).</div>
   <table class="twtable"><thead><tr>
-    <th>System</th><th>Original P&amp;L</th><th>Benchmark P&amp;L</th><th>Hybrid P&amp;L</th><th>Arthur Exit Value</th>
+    <th>System</th><th>Original P&amp;L</th><th>Benchmark P&amp;L</th><th>Hybrid P&amp;L</th><th class="evcol">Arthur Exit Value</th>
   </tr></thead><tbody id="twbody"></tbody></table>
 </div>
 
@@ -1452,17 +1456,24 @@ function maintenanceStartAll(btn){
     });
 }
 
-function renderThreeWay(systems){
+function renderThreeWay(data){
   var body = document.getElementById("twbody");
   if(!body){ return; }
+  var systems = data.systems || [];
   var cell = function(v){ return (v===null||v===undefined) ? '<span class="dim">--</span>' : '<span class="'+cls(v)+'">'+signMoney(v)+'</span>'; };
+  var evcell = function(v){ return (v===null||v===undefined) ? '<span class="dim">--</span>' : '<span class="exitval '+cls(v)+'">'+signMoney(v)+'</span>'; };
   var h = "";
   for(var i=0;i<systems.length;i++){
     var s = systems[i];
-    var ev = (s.exit_value===null||s.exit_value===undefined) ? '<span class="dim">--</span>' : '<span class="exitval '+cls(s.exit_value)+'">'+signMoney(s.exit_value)+'</span>';
     h += '<tr><td style="color:'+(s.colour||'#ccc')+'">'+s.name+' <span class="mut">:'+s.port+'</span></td>'
-       + '<td>'+cell(s.orig_cum)+'</td><td>'+cell(s.bench_cum)+'</td><td>'+cell(s.hybrid_cum)+'</td><td>'+ev+'</td></tr>';
+       + '<td>'+cell(s.orig_cum)+'</td><td>'+cell(s.bench_cum)+'</td><td>'+cell(s.hybrid_cum)+'</td>'
+       + '<td class="evcol">'+evcell(s.exit_value)+'</td></tr>';
   }
+  // DESK TOTAL: total Hybrid P&L, total Benchmark P&L, and total Arthur exit value
+  // (Hybrid total minus Benchmark total, matched systems) -- same green/red treatment.
+  h += '<tr class="tw-total"><td>DESK TOTAL</td>'
+     + '<td>'+cell(data.orig_cum)+'</td><td>'+cell(data.bench_cum)+'</td><td>'+cell(data.hybrid_cum)+'</td>'
+     + '<td class="evcol">'+evcell(data.delta_bench)+'</td></tr>';
   body.innerHTML = h;
 }
 
@@ -1485,7 +1496,7 @@ function render(data){
   setTw("benchCum", data.bench_cum, true);
   setTw("dOrig", data.delta_orig, true);
   setTw("dBench", data.delta_bench, true);
-  renderThreeWay(data.systems || []);
+  renderThreeWay(data);
   document.getElementById("lastupd").textContent = data.updated_utc;
   var ver = document.getElementById("version");
   if(ver){ ver.textContent = data.version_string || ("v" + (data.version || "--")); }
