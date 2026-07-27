@@ -102,7 +102,6 @@ SYSTEMS = [
     {"key": "gold",   "name": "GoldHybrid",   "market": "GOLD (XAU)",  "colour": "#FFD700", "port": 5043, "kind": "gold",   "orig_port": 5003, "bench_port": 5023, "start": 1000.0},
     {"key": "us",     "name": "USHybrid",     "market": "S&P 500",     "colour": "#FFFFFF", "port": 5044, "kind": "us",     "orig_port": 5004, "bench_port": 5024, "start": 1000.0},
     {"key": "oil",    "name": "OilHybrid",    "market": "Brent Crude", "colour": "#FF6600", "port": 5045, "kind": "oil",    "orig_port": 5005, "bench_port": 5025, "start": 1000.0},
-    {"key": "gas",    "name": "GasHybrid",    "market": "Natural Gas", "colour": "#228B22", "port": 5046, "kind": "gas",    "orig_port": 5006, "bench_port": 5026, "start": 1000.0},
     {"key": "nikkei", "name": "NikkeiHybrid", "market": "Japan 225",   "colour": "#C8102E", "port": 5048, "kind": "nikkei", "orig_port": 5008, "bench_port": None, "start": 1000.0},
 ]
 SYS_BY_KEY = {s["key"]: s for s in SYSTEMS}
@@ -712,7 +711,6 @@ _PROGRESS = [
     ("gold",   "GoldHybrid",   5043),
     ("us",     "USHybrid",     5044),
     ("oil",    "OilHybrid",    5045),
-    ("gas",    "GasHybrid",    5046),
     ("nikkei", "NikkeiHybrid", 5048),
 ]
 
@@ -729,8 +727,6 @@ _LAUNCH_GROUPS = [
                                       ("USHybrid Engine",        "watchdog_us.py")]),
     (15, "oil",    "OilHybridAI",    [("OilHybrid Dashboard",    "dashboard_oil.py"),
                                       ("OilHybrid Engine",       "watchdog_oil.py")]),
-    (15, "gas",    "GasHybridAI",    [("GasHybrid Dashboard",    "dashboard_gas.py"),
-                                      ("GasHybrid Engine",       "watchdog_gas.py")]),
     (15, "nikkei", "NikkeiHybridAI", [("NikkeiHybrid Dashboard", "dashboard_nikkei.py"),
                                       ("NikkeiHybrid Engine",    "watchdog_nikkei.py")]),
 ]
