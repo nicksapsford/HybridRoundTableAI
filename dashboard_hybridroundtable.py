@@ -516,6 +516,8 @@ def _gaius_status():
     coll_ok = ch is not None and ch <= 25
     mkt_ok  = mh is not None and mh <= 24 * 8
     return {"collector_last": coll, "market_last": mkt,
+            "collector_age_h": (round(ch, 2) if ch is not None else None),
+            "collector_fresh": (ch is not None and ch < 24),   # green < 24h (28 Jul brief)
             "collector_ok": coll_ok, "market_ok": mkt_ok, "ok": coll_ok and mkt_ok}
 
 
@@ -886,6 +888,23 @@ def gaius_report():
         log.error("Gaius report launch failed: %s", exc)
         return Response(json.dumps({"ok": False, "error": str(exc)}),
                         status=500, mimetype="application/json")
+
+
+@app.route("/api/gaius-collect", methods=["POST"])
+def api_gaius_collect():
+    """Proxy a manual Gaius collection to the collector API (:5012 /api/collect-now).
+    Server-side to avoid CORS; clear error if the collector API is down."""
+    try:
+        req = urllib.request.Request("http://localhost:5012/api/collect-now",
+                                     data=b"{}", method="POST",
+                                     headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=5) as r:
+            body = r.read().decode("utf-8", "replace")
+        return Response(body, mimetype="application/json")
+    except Exception as exc:                               # noqa: BLE001
+        return Response(json.dumps({"status": "error",
+                                    "error": "Gaius API offline on :5012 -- restart the Gaius collector to enable click-to-collect (%s)" % exc}),
+                        status=502, mimetype="application/json")
 
 
 @app.route("/api/lift-confidence/<key>", methods=["POST"])
@@ -1538,9 +1557,30 @@ function renderGaius(g){
     return '<span style="color:' + col + ';font-weight:700">&#9679; ' + lbl + '</span> '
          + '<span class="dim">' + (ts || "never") + '</span>';
   }
-  el.innerHTML = '&#128300; Gaius Strategic Intelligence &nbsp;|&nbsp; '
+  var ind;
+  if(window._gaiusCollecting){
+    ind = '<span style="color:#f39c12;font-weight:700">&#9680; GAIUS COLLECTING...</span>';
+  } else if(g.collector_fresh){
+    ind = '<span style="color:#2ecc71;font-weight:700" title="Last Gaius collection under 24h ago">&#128994; GAIUS OK</span>';
+  } else {
+    ind = '<span onclick="collectGaius()" title="Last collection over 24h old -- click to run one now" style="color:#e74c3c;font-weight:700;cursor:pointer">&#128308; GAIUS &mdash; click to collect</span>';
+  }
+  el.innerHTML = ind + ' &nbsp;|&nbsp; '
     + 'Collector: ' + tag(g.collector_ok, g.collector_last) + ' &nbsp;&middot;&nbsp; '
     + 'Market data: ' + tag(g.market_ok, g.market_last);
+}
+function collectGaius(){
+  if(window._gaiusCollecting) return;
+  window._gaiusCollecting = true;
+  var el = document.getElementById("gaius-status");
+  if(el){ el.innerHTML = '&#128300; <span style="color:#f39c12;font-weight:700">&#9680; GAIUS COLLECTING...</span>'; }
+  fetch("/api/gaius-collect", {method:"POST"})
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if(res && res.status === "error"){ window._gaiusCollecting = false; alert(res.error || "Gaius collect failed."); }
+      else { setTimeout(function(){ window._gaiusCollecting = false; }, 90000); }
+    })
+    .catch(function(){ window._gaiusCollecting = false; alert("Gaius collect request failed."); });
 }
 
 function fmtSaved(v){
